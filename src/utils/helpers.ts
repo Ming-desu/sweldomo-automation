@@ -26,7 +26,7 @@ export async function waitForNextAction(state: { timeInDone: boolean; timeOutDon
   while ((action = getActionType(state)) === null) {
     const now = new Date();
     console.log(`[${now.toLocaleTimeString()}] Not yet time for ${state.timeInDone ? 'TIME_OUT' : 'TIME_IN'}. Waiting...`);
-    await new Promise(resolve => setTimeout(resolve, 1000)); // check every minute
+    await new Promise(resolve => setTimeout(resolve, 60 * 1000 * 10)); // check every minute
   }
   console.log(`✅ It's time to perform: ${action}`);
   return action;
