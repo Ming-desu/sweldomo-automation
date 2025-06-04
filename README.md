@@ -15,7 +15,15 @@
 
 - Clone the repository: `git clone git@github.com:Ming-desu/sweldomo-automation.git`
 - Navigate: `cd sweldomo-automation`
-- Install dependencies: `npm ci`
+- Install dependencies: `npm install`
+- Install playwright: 
+  ```
+  # Linux (wsl)
+  npx playwright install --with-deps
+
+  # Windows
+  npx playwright install chromium
+  ```
 
 #### Step 2: Environment Configuration
 
