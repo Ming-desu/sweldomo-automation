@@ -17,7 +17,7 @@ export function getActionType(state: { timeInDone: boolean; timeOutDone: boolean
   const outMinutes = parseTimeToMinutes(env.TIME_OUT);
 
   if (!state.timeInDone && now >= inMinutes && now < outMinutes) return 'TIME_IN';
-  if (!state.timeOutDone && now >= outMinutes && now <= outMinutes) return 'TIME_OUT';
+  if (!state.timeOutDone && now >= outMinutes && now <= outMinutes + 30) return 'TIME_OUT';
   return null;
 }
 

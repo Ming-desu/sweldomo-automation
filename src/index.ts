@@ -3,6 +3,7 @@ import path from 'node:path';
 
 import { env } from './utils/envConfig';
 import { safeClose, waitForNextAction } from './utils/helpers';
+import { extractHolidaysWithPuppeteer } from './services/holiday.api';
 
 async function launchAndPerformAction(action: 'TIME_IN' | 'TIME_OUT') {
   const browser = await chromium.launch({
@@ -65,6 +66,15 @@ async function launchAndPerformAction(action: 'TIME_IN' | 'TIME_OUT') {
   if (action === 'TIME_IN') {
     await page.locator(env.TIME_IN_BUTTON).waitFor({ state: 'visible' });
     await page.click(env.TIME_IN_BUTTON);
+
+    await page.waitForTimeout(1000);
+    await page.evaluate(() => {
+      const button = document.querySelector(env.CAPTURE_BUTTON) as HTMLDivElement | null;
+
+      if (button?.checkVisibility()) {
+        button.click();
+      }
+    })
   } else if (action === 'TIME_OUT') {
     await page.locator(env.TIME_OUT_BUTTON).waitFor({ state: 'visible' });
     await page.click(env.TIME_OUT_BUTTON);
@@ -98,11 +108,55 @@ const state = {
   timeOutDone: false,
 };
 
-while (!state.timeInDone || !state.timeOutDone) {
-  const nextAction = await waitForNextAction(state);
-  await launchAndPerformAction(nextAction);
-  if (nextAction === 'TIME_IN') state.timeInDone = true;
-  if (nextAction === 'TIME_OUT') state.timeOutDone = true;
+const JS_MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+const JS_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const EXCLUDED_DAYS = ['Saturday', 'Sunday'];
+const PH_HOLIDAYS = await extractHolidaysWithPuppeteer();
+const PH_HOLIDAYS_MAP = new Map(PH_HOLIDAYS.map((value) => {
+  const [dateMonth] = value.date.split(', ');
+  return [dateMonth, value.occasion];
+}))
+
+const currentDate = new Date();
+const currentDay = JS_DAYS[currentDate.getDay()];
+const currentMonth = JS_MONTHS[currentDate.getMonth()];
+
+async function main() {
+  // Check if days excluded
+  if (EXCLUDED_DAYS.includes(currentDay)) {
+    console.warn(`⚠️ Today is ${currentDay}. Skipping...`);
+    return;
+  }
+
+  const holiday = PH_HOLIDAYS_MAP.get(`${currentMonth} ${currentDate.getDate()}`);
+
+  if (holiday) {
+    console.warn(`⚠️ Today is ${holiday}. Skipping...`);
+    return;
+  }
+
+  while (!state.timeInDone || !state.timeOutDone) {
+    const nextAction = await waitForNextAction(state);
+    await launchAndPerformAction(nextAction);
+    if (nextAction === 'TIME_IN') state.timeInDone = true;
+    if (nextAction === 'TIME_OUT') state.timeOutDone = true;
+  }
+
+  process.exit(0);
 }
 
-process.exit(0);
+main();

@@ -16,8 +16,10 @@
     "@types/node": "^22.15.29"
   },
   "dependencies": {
+    "cheerio": "^1.0.0",
     "dotenv": "^16.5.0",
     "envalid": "^8.0.0",
+    "puppeteer": "^24.10.0",
     "typescript": "^5.8.3"
   }
 }
