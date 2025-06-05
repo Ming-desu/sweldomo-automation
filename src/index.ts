@@ -68,13 +68,13 @@ async function launchAndPerformAction(action: 'TIME_IN' | 'TIME_OUT') {
     await page.click(env.TIME_IN_BUTTON);
 
     await page.waitForTimeout(1000);
-    await page.evaluate(() => {
-      const button = document.querySelector(env.CAPTURE_BUTTON) as HTMLDivElement | null;
+    await page.evaluate((selector: string) => {
+      const button = document.querySelector(selector) as HTMLDivElement | null;
 
       if (button?.checkVisibility()) {
         button.click();
       }
-    })
+    }, env.CAPTURE_BUTTON);
   } else if (action === 'TIME_OUT') {
     await page.locator(env.TIME_OUT_BUTTON).waitFor({ state: 'visible' });
     await page.click(env.TIME_OUT_BUTTON);
